@@ -15,10 +15,11 @@ export type CompareReportsOptions = CliOptions & {
   'report-files-glob'?: string;
   output: 'cli' | 'markdown';
   deltaFormat: keyof DiffByMetric;
+  outputFile: string;
 };
 
 async function compareReports(options: CompareReportsOptions) {
-  const { branch, output, quiet, deltaFormat } = options;
+  const { branch, output, quiet, deltaFormat, outputFile } = options;
   const startTime = process.hrtime();
 
   const config = await readConfig(quiet);
@@ -59,6 +60,7 @@ async function compareReports(options: CompareReportsOptions) {
         repository: config.repository,
         showUnchanged: false,
         deltaFormat: deltaFormat ?? 'percent',
+        outputFile
       });
       break;
     case 'markdown':
@@ -67,6 +69,7 @@ async function compareReports(options: CompareReportsOptions) {
         repository: config.repository,
         showUnchanged: true,
         deltaFormat: deltaFormat ?? 'delta',
+        outputFile,
       });
       break;
   }
@@ -99,6 +102,10 @@ const api: CommandModule<Record<string, unknown>, CompareReportsOptions> = {
       choices: ['cli', 'markdown'],
       description: 'Defines a reporter to produce output',
       default: 'cli',
+    },
+    outputFile: {
+      type: 'string',
+      description: 'File to output -- only for when output is markdown',
     },
     deltaFormat: {
       type: 'string',
