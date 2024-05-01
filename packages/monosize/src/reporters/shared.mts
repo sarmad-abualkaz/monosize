@@ -4,7 +4,7 @@ import { formatBytes } from '../utils/helpers.mjs';
 
 export type Reporter = (
   report: ComparedReport,
-  options: { commitSHA: string; repository: string; showUnchanged: boolean; deltaFormat: keyof DiffByMetric },
+  options: { commitSHA: string; repository: string; showUnchanged: boolean; deltaFormat: keyof DiffByMetric; outputFile: string },
 ) => void;
 
 export function formatDeltaFactory(

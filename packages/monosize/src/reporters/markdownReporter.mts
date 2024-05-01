@@ -1,3 +1,4 @@
+import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { findPackageRoot } from 'workspace-tools';
 
@@ -30,7 +31,7 @@ function formatDelta(diff: DiffByMetric, deltaFormat: keyof DiffByMetric): strin
 }
 
 export const markdownReporter: Reporter = (report, options) => {
-  const { commitSHA, repository, showUnchanged, deltaFormat } = options;
+  const { commitSHA, repository, showUnchanged, deltaFormat, outputFile } = options;
   const footer = `<sub>🤖 This report was generated against <a href='${repository}/commit/${commitSHA}'>${commitSHA}</a></sub>`;
 
   assertPackageRoot();
@@ -99,6 +100,21 @@ export const markdownReporter: Reporter = (report, options) => {
   reportOutput.push(footer);
 
   console.log(reportOutput.join('\n'));
+
+  if (outputFile) {
+      // Write content to the file
+      const content = reportOutput.join('\n');
+
+      fs.writeFile(outputFile, content, (err) => {
+          console.log("writing to file", outputFile)
+          if (err) {
+              console.error("Error writing to file:", err);
+          } else {
+              console.log("Content written to file successfully!");
+          }
+      });
+  }
+
 };
 
 function assertPackageRoot() {
