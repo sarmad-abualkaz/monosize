@@ -12,14 +12,31 @@ import { readConfig } from '../utils/readConfig.mjs';
 import type { CliOptions } from '../index.mjs';
 import type { BuildResult } from '../types.mjs';
 
-export type MeasureOptions = CliOptions & { debug: boolean };
+export type MeasureOptions = CliOptions & {
+  debug: boolean
+  'artifacts-directory'?: string;
+ };
 
 async function measure(options: MeasureOptions) {
   const { debug = false, quiet } = options;
 
   const startTime = process.hrtime();
-  const artifactsDir = path.resolve(process.cwd(), 'dist', 'bundle-size');
 
+  let artifactsDir: string;
+
+  if (options['artifacts-directory']){
+
+    artifactsDir = path.resolve(process.cwd(), options['artifacts-directory']);
+
+  } else {
+
+    artifactsDir = path.resolve(process.cwd(), 'dist', 'bundle-size');
+
+  }
+
+  if (artifactsDir === process.cwd()) {
+    throw new Error("'--artifacts-directory' cannot be the same as current working directory");
+  }
   await fs.promises.rm(artifactsDir, { recursive: true, force: true });
   await fs.promises.mkdir(artifactsDir, { recursive: true });
 
@@ -42,7 +59,7 @@ async function measure(options: MeasureOptions) {
 
   const config = await readConfig(quiet);
 
-  const preparedFixtures = await Promise.all(fixtures.map(prepareFixture));
+  const preparedFixtures = await Promise.all(fixtures.map(fixture => prepareFixture(fixture, artifactsDir)));
   const measurements: BuildResult[] = [];
 
   for (const preparedFixture of preparedFixtures) {
@@ -90,6 +107,10 @@ const api: CommandModule<Record<string, unknown>, MeasureOptions> = {
     debug: {
       type: 'boolean',
       description: 'If true, will output additional artifacts for debugging',
+    },
+    'artifacts-directory': {
+      type: 'string',
+      description: 'Relative path where artifacts will be stored',
     },
   },
 };

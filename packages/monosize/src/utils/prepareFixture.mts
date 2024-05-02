@@ -8,7 +8,7 @@ import type { PreparedFixture } from '../types.mjs';
 /**
  * Prepares a fixture file to be compiled with a bundler, grabs data from a default export and removes it.
  */
-export async function prepareFixture(fixture: string): Promise<PreparedFixture> {
+export async function prepareFixture(fixture: string, outputFixturePathOption: string): Promise<PreparedFixture> {
   const sourceFixturePath = path.resolve(process.cwd(), fixture);
   const sourceFixtureCode = await fs.promises.readFile(sourceFixturePath, 'utf8');
 
@@ -64,7 +64,18 @@ export async function prepareFixture(fixture: string): Promise<PreparedFixture> 
   }
 
   const modifiedCode = sourceFixtureCode.slice(0, defaultExport.start) + sourceFixtureCode.slice(defaultExport.end);
-  const outputFixturePath = path.resolve(process.cwd(), 'dist', fixture);
+
+  let outputFixturePath
+  if (outputFixturePathOption){
+    const fixtureFileName = fixture.split('/').pop()
+    if (typeof fixtureFileName === 'string'){
+      outputFixturePath = path.resolve(process.cwd(), outputFixturePathOption, fixtureFileName);
+    } else {
+      outputFixturePath = path.resolve(process.cwd(), outputFixturePathOption, fixture);
+    }
+  } else {
+    outputFixturePath = path.resolve(process.cwd(), 'dist', fixture);
+  }
 
   await fs.promises.mkdir(path.dirname(outputFixturePath), { recursive: true });
   await fs.promises.writeFile(outputFixturePath, modifiedCode);
