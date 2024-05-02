@@ -65,17 +65,12 @@ export async function prepareFixture(fixture: string, outputFixturePathOption: s
 
   const modifiedCode = sourceFixtureCode.slice(0, defaultExport.start) + sourceFixtureCode.slice(defaultExport.end);
 
-  let outputFixturePath
-  if (outputFixturePathOption){
-    const fixtureFileName = fixture.split('/').pop()
-    if (typeof fixtureFileName === 'string'){
-      outputFixturePath = path.resolve(process.cwd(), outputFixturePathOption, fixtureFileName);
-    } else {
-      outputFixturePath = path.resolve(process.cwd(), outputFixturePathOption, fixture);
-    }
-  } else {
-    outputFixturePath = path.resolve(process.cwd(), 'dist', fixture);
-  }
+  const fixtureFileName = fixture.split('/').pop();
+  const outputFixturePath = outputFixturePathOption
+    ? typeof fixtureFileName === 'string'
+      ? path.resolve(process.cwd(), outputFixturePathOption, fixtureFileName)
+      : path.resolve(process.cwd(), outputFixturePathOption, fixture)
+    : path.resolve(process.cwd(), 'dist', fixture);
 
   await fs.promises.mkdir(path.dirname(outputFixturePath), { recursive: true });
   await fs.promises.writeFile(outputFixturePath, modifiedCode);
